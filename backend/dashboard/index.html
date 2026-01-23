@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PipeGuard Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>🛡 PipeGuard</h2>
+    <ul>
+      <li class="active">Dashboard</li>
+      <li>Pipeline Runs</li>
+      <li>Reports</li>
+      <li>Settings</li>
+    </ul>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <header>
+      <h1>Security Overview</h1>
+      <span id="pipeline-status" class="badge">LOADING</span>
+    </header>
+
+    <!-- Stat Cards -->
+    <section class="cards">
+      <div class="card">
+        <h3>Secrets</h3>
+        <p id="secrets">–</p>
+      </div>
+      <div class="card">
+        <h3>SAST</h3>
+        <p id="sast">–</p>
+      </div>
+      <div class="card">
+        <h3>CVEs</h3>
+        <p id="cve">–</p>
+      </div>
+      <div class="card">
+        <h3>IaC</h3>
+        <p id="iac">–</p>
+      </div>
+    </section>
+
+    <!-- Charts -->
+    <section class="charts">
+      <div class="chart-box">
+        <h3>Risk Score</h3>
+        <canvas id="riskChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Issue Distribution</h3>
+        <canvas id="barChart"></canvas>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

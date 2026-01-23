@@ -1,0 +1,31 @@
+name: PipeGuard CI Security Scan
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y jq
+          pip install semgrep
+
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 -o gitleaks
+          chmod +x gitleaks
+          sudo mv gitleaks /usr/local/bin/
+
+          sudo apt install -y trivy
+
+      - name: Run PipeGuard Engine
+        run: |
+          chmod +x engine/pipeguard.sh
+          bash engine/pipeguard.sh
