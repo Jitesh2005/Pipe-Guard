@@ -1,4 +1,4 @@
-name: PipeGuard CI Security Scan
+name: PipeGuard Security Scan
 
 on:
   push:
@@ -10,22 +10,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y jq
-          pip install semgrep
+          sudo apt install -y jq curl
 
-          curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 -o gitleaks
-          chmod +x gitleaks
+          # Install Gitleaks
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz | tar -xz
           sudo mv gitleaks /usr/local/bin/
 
+          # Install Semgrep
+          pip install semgrep
+
+          # Install Trivy
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor -o /usr/share/keyrings/trivy.gpg
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb stable main" | sudo tee /etc/apt/sources.list.d/trivy.list
+          sudo apt update
           sudo apt install -y trivy
 
-      - name: Run PipeGuard Engine
+      - name: Run PipeGuard
         run: |
           chmod +x engine/pipeguard.sh
-          bash engine/pipeguard.sh
+          ./engine/pipeguard.sh
