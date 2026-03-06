@@ -1,0 +1,18 @@
+[
+  {
+    "timestamp": "2026-01-23 18:51:09",
+    "status": "FAIL"
+  },
+  {
+    "timestamp": "2026-01-23 18:57:44",
+    "status": "PASS"
+  },
+  {
+    "timestamp": "2026-03-02 13:29:22",
+    "status": "PASS"
+  },
+  {
+    "timestamp": "2026-03-06 10:58:58",
+    "status": "PASS"
+  }
+]

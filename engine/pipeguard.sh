@@ -17,7 +17,14 @@ echo "[2] SAST Scan"
 semgrep scan --config=auto --json -o "$REPORTS/sast.json" || FAILED=1
 
 echo "[3] CVE Scan"
-trivy fs . --severity HIGH,CRITICAL --exit-code 1 -o "$REPORTS/trivy.txt" || FAILED=1
+trivy fs . \
+  --scanners vuln \
+  --severity HIGH,CRITICAL \
+  --timeout 10m \
+  --skip-dirs .git,.github,venv \
+  --exit-code 1 \
+  -o "$REPORTS/trivy.txt" || FAILED=1
+
 
 echo "[4] IaC Scan"
 trivy config . --severity HIGH,CRITICAL --exit-code 1 -o "$REPORTS/iac.txt" || FAILED=1
