@@ -1,0 +1,6 @@
+{
+  "secrets": 0,
+  "critical_cve": 0,
+  "sast": 5,
+  "iac": 2
+}
