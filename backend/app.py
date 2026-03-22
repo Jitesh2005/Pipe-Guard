@@ -28,54 +28,27 @@ def root():
 @app.get("/api/status")
 def status():
 
-    secrets = 0
-    sast = 0
-    cve = 0
-    iac = 0
-    risk_score = 0
+    summary_path = os.path.join(REPORTS_DIR, "summary.json")
 
-    try:
-        with open("../reports/secrets.json") as f:
-            secrets = len(json.load(f))
-    except:
-        pass
+    if os.path.exists(summary_path):
+        with open(summary_path) as f:
+            data = json.load(f)
 
-    try:
-        with open("../reports/sast.json") as f:
-            sast = len(json.load(f)["results"])
-    except:
-        pass
-
-    try:
-        with open("../reports/trivy.txt") as f:
-            data = f.read()
-            if "CRITICAL" in data:
-                cve = 1
-    except:
-        pass
-
-    try:
-        with open("../reports/iac.txt") as f:
-            data = f.read()
-            if "HIGH" in data:
-                iac = 1
-    except:
-        pass
-
-    # Read risk score from summary.json
-    try:
-        with open("../reports/summary.json") as f:
-            summary = json.load(f)
-            risk_score = summary.get("risk_score", 0)
-    except:
-        pass
+        return {
+            "secrets": data.get("secrets", 0),
+            "sast": data.get("sast", 0),
+            "cve": data.get("cve", 0),
+            "iac": data.get("iac", 0),
+            "risk_score": data.get("risk_score", 0),
+            "status": data.get("status", "PASS")
+        }
 
     return {
-        "secrets": secrets,
-        "sast": sast,
-        "cve": cve,
-        "iac": iac,
-        "risk_score": risk_score
+        "secrets": 0,
+        "sast": 0,
+        "cve": 0,
+        "iac": 0,
+        "risk_score": 0
     }
 
 
@@ -92,3 +65,25 @@ def history():
             return json.load(f)
 
     return []
+
+
+@app.get("/api/report/{type}")
+def get_report(type: str):
+
+    files = {
+        "secrets": "secrets.json",
+        "sast": "sast.json",
+        "cve": "trivy.txt",
+        "iac": "iac.txt"
+    }
+
+    if type not in files:
+        return {"error": "Invalid report"}
+
+    path = os.path.join(REPORTS_DIR, files[type])
+
+    if not os.path.exists(path):
+        return {"data": "Report not found"}
+
+    with open(path) as f:
+        return {"data": f.read()}

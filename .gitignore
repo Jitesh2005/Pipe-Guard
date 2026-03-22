@@ -1,0 +1,17 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+venv/
+
+# Reports (generated files)
+reports/
+
+# Logs / temp
+*.log
+*.tmp
+
+# OS files
+.DS_Store

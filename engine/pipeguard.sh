@@ -9,6 +9,7 @@ REPORTS="$BASE_DIR/reports"
 mkdir -p "$REPORTS"
 
 FAILED=0
+REASONS=""
 
 ########################################
 # Clean old reports
@@ -26,22 +27,22 @@ echo "[1] Secrets Scan"
 gitleaks detect \
 --source . \
 --no-git \
---report-path "$REPORTS/secrets.json" \
---exit-code 1 || FAILED=1
+--report-path "$REPORTS/secrets.json"
 
 if [ -f "$REPORTS/secrets.json" ]; then
-  SECRETS_FOUND=$(jq length "$REPORTS/secrets.json")
+  SECRETS_COUNT=$(jq length "$REPORTS/secrets.json")
 
-  if [ "$SECRETS_FOUND" -gt 0 ]; then
-    echo "❌ Secrets detected: $SECRETS_FOUND"
+  if [ "$SECRETS_COUNT" -gt 0 ]; then
+    echo "❌ Secrets detected: $SECRETS_COUNT"
+    REASONS="$REASONS\n• Secret detected in repository ($SECRETS_COUNT found)"
     FAILED=1
   else
     echo "✅ No secrets found"
   fi
 else
+  SECRETS_COUNT=0
   echo "✅ No secrets found"
 fi
-
 
 ########################################
 # 2️⃣ SAST Scan (Semgrep)
@@ -52,8 +53,18 @@ semgrep scan \
 --config=auto \
 --exclude reports \
 --json \
--o "$REPORTS/sast.json" || FAILED=1
+-o "$REPORTS/sast.json"
 
+if [ -f "$REPORTS/sast.json" ]; then
+  SAST_COUNT=$(jq '.results | length' "$REPORTS/sast.json")
+
+  if [ "$SAST_COUNT" -gt 0 ]; then
+    echo "❌ SAST findings: $SAST_COUNT"
+    REASONS="$REASONS\n• Static code vulnerabilities detected ($SAST_COUNT findings)"
+  fi
+else
+  SAST_COUNT=0
+fi
 
 ########################################
 # 3️⃣ CVE Scan (Trivy)
@@ -61,13 +72,19 @@ semgrep scan \
 echo "[3] CVE Scan"
 
 trivy fs . \
-  --scanners vuln \
-  --severity HIGH,CRITICAL \
-  --timeout 10m \
-  --skip-dirs .git,.github,venv,backend/venv,reports \
-  --exit-code 1 \
-  -o "$REPORTS/trivy.txt" || FAILED=1
+--scanners vuln \
+--severity HIGH,CRITICAL \
+--timeout 10m \
+--skip-dirs .git,.github,venv,backend/venv,reports \
+-o "$REPORTS/trivy.txt"
 
+CVE_COUNT=$(grep -c "CRITICAL" "$REPORTS/trivy.txt" 2>/dev/null)
+CVE_COUNT=${CVE_COUNT:-0}
+
+if [ "$CVE_COUNT" -gt 0 ]; then
+  echo "❌ Critical CVEs detected: $CVE_COUNT"
+  REASONS="$REASONS\n• Critical dependency vulnerabilities detected"
+fi
 
 ########################################
 # 4️⃣ IaC Misconfiguration Scan
@@ -75,83 +92,22 @@ trivy fs . \
 echo "[4] IaC Scan"
 
 trivy config . \
-  --severity HIGH,CRITICAL \
-  --skip-dirs reports \
-  --exit-code 1 \
-  -o "$REPORTS/iac.txt" || FAILED=1
+--severity HIGH,CRITICAL \
+--skip-dirs reports \
+-o "$REPORTS/iac.txt"
 
+IAC_COUNT=$(grep -c "HIGH" "$REPORTS/iac.txt" 2>/dev/null)
+IAC_COUNT=${IAC_COUNT:-0}
 
-########################################
-# 5️⃣ Pipeline Decision
-########################################
-
-TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
-STATUS="PASS"
-
-if [ $FAILED -eq 1 ]; then
-  STATUS="FAIL"
+if [ "$IAC_COUNT" -gt 0 ]; then
+  echo "❌ IaC misconfigurations detected: $IAC_COUNT"
+  REASONS="$REASONS\n• Infrastructure misconfiguration detected"
 fi
-
-
-########################################
-# 6️⃣ Summary Report
-########################################
-
-cat <<EOF > "$REPORTS/summary.json"
-{
-  "timestamp": "$TIMESTAMP",
-  "status": "$STATUS",
-  "risk_score": $RISK_SCORE,
-  "secrets": $SECRETS_COUNT,
-  "sast": $SAST_COUNT,
-  "cve": $CVE_COUNT,
-  "iac": $IAC_COUNT
-}
-EOF
-
-
-########################################
-# 7️⃣ History Tracking
-########################################
-
-if [ ! -f "$REPORTS/history.json" ]; then
-  echo "[]" > "$REPORTS/history.json"
-fi
-
-jq ". += [$(cat "$REPORTS/summary.json")]" \
-"$REPORTS/history.json" > "$REPORTS/tmp.json" \
-&& mv "$REPORTS/tmp.json" "$REPORTS/history.json"
-
-
-########################################
-# 8️⃣ Final Result
-########################################
-
-echo "--------------------------------------"
-
-if [ "$STATUS" = "FAIL" ]; then
-  echo "❌ PIPELINE BLOCKED"
-  exit 1
-else
-  echo "✅ PIPELINE PASSED"
-fi
-
 
 ########################################
 # 5️⃣ Risk Score Calculation
 ########################################
 
-S########################################
-# 5️⃣ Risk Score Calculation
-########################################
-
-SECRETS_COUNT=$(jq length "$REPORTS/secrets.json" 2>/dev/null || echo 0)
-SAST_COUNT=$(jq '.results | length' "$REPORTS/sast.json" 2>/dev/null || echo 0)
-
-CVE_COUNT=$(grep -c "CRITICAL" "$REPORTS/trivy.txt" 2>/dev/null || echo 0)
-IAC_COUNT=$(grep -c "HIGH" "$REPORTS/iac.txt" 2>/dev/null || echo 0)
-
-# Default value
 RISK_SCORE=0
 
 if [ "$SECRETS_COUNT" -gt 0 ]; then
@@ -171,7 +127,6 @@ if [ "$IAC_COUNT" -gt 0 ]; then
 fi
 
 echo "Risk Score: $RISK_SCORE / 100"
-
 
 ########################################
 # 6️⃣ Security Policy Enforcement
@@ -202,4 +157,73 @@ fi
 if [ "$IAC_COUNT" -gt "$IAC_LIMIT" ]; then
   echo "❌ Policy Violation: IaC misconfigurations"
   FAILED=1
+fi
+
+########################################
+# Pipeline Decision
+########################################
+
+TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
+STATUS="PASS"
+
+if [ $FAILED -eq 1 ]; then
+  STATUS="FAIL"
+fi
+
+########################################
+# Summary Report
+########################################
+
+cat <<EOF > "$REPORTS/summary.json"
+{
+  "timestamp": "$TIMESTAMP",
+  "status": "$STATUS",
+  "risk_score": $RISK_SCORE,
+  "secrets": $SECRETS_COUNT,
+  "sast": $SAST_COUNT,
+  "cve": $CVE_COUNT,
+  "iac": $IAC_COUNT,
+  "reasons": "$REASONS_JSON"
+}
+EOF
+
+########################################
+# History Tracking
+########################################
+
+if [ ! -f "$REPORTS/history.json" ]; then
+  echo "[]" > "$REPORTS/history.json"
+fi
+
+jq ". += [$(cat "$REPORTS/summary.json")]" \
+"$REPORTS/history.json" > "$REPORTS/tmp.json" \
+&& mv "$REPORTS/tmp.json" "$REPORTS/history.json"
+
+########################################
+# Final Result
+########################################
+
+echo "--------------------------------------"
+
+if [ "$STATUS" = "FAIL" ]; then
+
+  echo ""
+  echo "❌ PIPELINE BLOCKED"
+  echo ""
+  echo "Reasons:"
+  echo -e "$REASONS"
+  echo ""
+  echo "Risk Score: $RISK_SCORE / 100"
+
+  exit 1
+
+else
+
+  echo ""
+  echo "✅ PIPELINE PASSED"
+  echo ""
+  echo "No security issues detected."
+  echo ""
+  echo "Risk Score: $RISK_SCORE / 100"
+
 fi

@@ -1,176 +1,317 @@
 /* Global reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Segoe UI", sans-serif;
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:"Segoe UI",sans-serif;
 }
 
-body {
-  background: #0f0820;
-  color: #ffffff;
+body{
+background:#0f0820;
+color:#ffffff;
 }
 
 /* Layout */
-.container {
-  display: flex;
-  height: 100vh;
+
+.container{
+display:flex;
+height:100vh;
 }
 
 /* Sidebar */
-.sidebar {
-  width: 220px;
-  background: #160a35;
-  padding: 20px;
+
+.sidebar{
+width:220px;
+background:#160a35;
+padding:20px;
 }
 
-.sidebar h2 {
-  margin-bottom: 30px;
-  color: #9f7aea;
+.sidebar h2{
+margin-bottom:30px;
+color:#9f7aea;
 }
 
-.sidebar ul {
-  padding-left: 0;
+/* Sidebar menu */
+
+.sidebar ul{
+padding-left:0;
 }
 
-.sidebar ul li {
-  list-style: none;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s ease;
+.sidebar ul li{
+list-style:none;
+padding:12px;
+margin-bottom:10px;
+border-radius:8px;
+cursor:pointer;
+transition:all .25s ease;
+position:relative;
 }
 
-.sidebar ul li.active,
-.sidebar ul li:hover {
-  background: #2b177a;
+/* Sidebar hover */
+
+.sidebar ul li:hover{
+background:#2b177a;
+}
+
+/* Sidebar active */
+
+.sidebar ul li.active{
+background:#2b177a;
+}
+
+/* Sidebar indicator bar */
+
+.sidebar ul li::before{
+content:"";
+position:absolute;
+left:-10px;
+top:0;
+height:100%;
+width:4px;
+background:transparent;
+border-radius:4px;
+transition:.2s;
+}
+
+.sidebar ul li.active::before{
+background:#9f7aea;
 }
 
 /* Main content */
-.main {
-  flex: 1;
-  padding: 30px;
-  overflow-y: auto;
+
+.main{
+flex:1;
+padding:30px;
+overflow-y:auto;
 }
 
-/* View handling */
-.view.hidden {
-  display: none;
+/* View animation */
+
+.view{
+animation:fadeIn .35s ease;
+}
+
+.view.hidden{
+display:none;
+}
+
+@keyframes fadeIn{
+from{
+opacity:0;
+transform:translateY(8px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
 }
 
 /* Header */
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
 }
 
-header h1 {
-  font-size: 26px;
+header h1{
+font-size:26px;
 }
 
-.badge {
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: bold;
-  background: gray;
+/* Pipeline badge */
+
+.badge{
+padding:8px 16px;
+border-radius:20px;
+font-weight:bold;
+background:gray;
+animation:badgePulse 3s infinite;
+}
+
+@keyframes badgePulse{
+0%{transform:scale(1)}
+50%{transform:scale(1.05)}
+100%{transform:scale(1)}
 }
 
 /* Cards */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-top: 30px;
+
+.cards{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:20px;
+margin-top:30px;
 }
 
-.card {
-  background: #1c0f3a;
-  padding: 20px;
-  border-radius: 14px;
-  text-align: center;
+.card{
+background:#1c0f3a;
+padding:20px;
+border-radius:14px;
+text-align:center;
+transition:all .25s ease;
 }
 
-.card h3 {
-  font-size: 16px;
-  color: #c3b7ff;
+/* Card hover */
+
+.card:hover{
+transform:translateY(-5px);
+box-shadow:0 12px 25px rgba(0,0,0,0.5);
 }
 
-.card p {
-  font-size: 22px;
-  margin-top: 10px;
+.card h3{
+font-size:16px;
+color:#c3b7ff;
+}
+
+.card p{
+font-size:22px;
+margin-top:10px;
 }
 
 /* Charts */
-.charts {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  margin-top: 40px;
+
+.charts{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:30px;
+margin-top:40px;
 }
 
-.chart-box {
-  background: #1c0f3a;
-  padding: 20px;
-  border-radius: 14px;
-  height: 360px;
-  display: flex;
-  flex-direction: column;
+/* Chart container */
+
+.chart-box{
+background:#1c0f3a;
+padding:20px;
+border-radius:14px;
+display:flex;
+flex-direction:column;
+align-items:center;
+transition:.25s;
 }
 
-.chart-box h3 {
-  margin-bottom: 10px;
-  color: #c3b7ff;
+/* Chart glow */
+
+.chart-box:hover{
+box-shadow:0 0 20px rgba(159,122,234,0.25);
 }
 
-.chart-box canvas {
-  flex: 1;
-  max-height: 280px;
+.chart-box h3{
+margin-bottom:10px;
+color:#c3b7ff;
 }
 
-/* Tables (Pipeline Runs) */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 30px;
-  background: #1c0f3a;
-  border-radius: 12px;
-  overflow: hidden;
+/* Chart canvas */
+
+.chart-box canvas{
+max-height:240px;
+margin-bottom:10px;
 }
 
-thead {
-  background: #2b177a;
+/* Risk score text */
+
+.risk-score-display{
+text-align:center;
+margin-top:8px;
+font-size:20px;
+font-weight:600;
+color:#ffffff;
 }
 
-th, td {
-  padding: 14px;
-  text-align: left;
+/* Highlight risk number */
+
+.risk-score-display span{
+color:#2aff8f;
+font-weight:700;
+animation:pulseRisk 2s infinite;
 }
 
-th {
-  font-weight: 600;
-  color: #c3b7ff;
+@keyframes pulseRisk{
+0%{opacity:1}
+50%{opacity:.5}
+100%{opacity:1}
 }
 
-tbody tr {
-  border-top: 1px solid #2b177a;
+/* Tables */
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:30px;
+background:#1c0f3a;
+border-radius:12px;
+overflow:hidden;
 }
 
-tbody tr:hover {
-  background: #24115a;
+thead{
+background:#2b177a;
+}
+
+th,td{
+padding:14px;
+text-align:left;
+}
+
+th{
+font-weight:600;
+color:#c3b7ff;
+}
+
+tbody tr{
+border-top:1px solid #2b177a;
+transition:.2s;
+}
+
+tbody tr:hover{
+background:#24115a;
 }
 
 /* Generic content blocks */
-.view h1 {
-  margin-bottom: 10px;
+
+.view h1{
+margin-bottom:10px;
 }
 
-.view p {
-  margin-bottom: 20px;
-  color: #b9b2e6;
+.view p{
+margin-bottom:20px;
+color:#b9b2e6;
 }
 
-.view ul li {
-  margin-bottom: 8px;
+.view ul li{
+margin-bottom:8px;
+}
+
+/* Reports section */
+
+.report-list li{
+cursor:pointer;
+margin-bottom:8px;
+padding:6px;
+border-radius:6px;
+transition:.2s;
+}
+
+.report-list li:hover{
+background:#2b177a;
+}
+
+/* Report output console */
+
+.report-output{
+margin-top:20px;
+background:#1c0f3a;
+padding:20px;
+border-radius:10px;
+max-height:400px;
+overflow:auto;
+border:1px solid #2b177a;
+}
+
+/* Report text */
+
+.report-output pre{
+white-space:pre-wrap;
+font-size:13px;
+color:#c3b7ff;
+line-height:1.5;
 }

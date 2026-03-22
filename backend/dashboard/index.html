@@ -68,11 +68,6 @@
 <p id="iac">0</p>
 </div>
 
-<div class="card">
-<h3>Risk Score</h3>
-<p id="risk">0</p>
-</div>
-
 </section>
 
 
@@ -81,8 +76,11 @@
 <section class="charts">
 
 <div class="chart-box">
-<h3>Risk Score</h3>
-<canvas id="riskChart"></canvas>
+  <h3>Pipeline Risk Score</h3>
+  <canvas id="riskChart"></canvas>
+  <div class="risk-score-display">
+    Risk Score: <span id="riskScore">0</span> / 100
+  </div>
 </div>
 
 <div class="chart-box">
@@ -129,12 +127,29 @@
 PipeGuard generates detailed scan reports after every pipeline execution.
 </p>
 
-<ul>
-<li>Secrets Detection Report</li>
-<li>Static Code Analysis Report</li>
-<li>Dependency Vulnerability Report</li>
-<li>Infrastructure Security Report</li>
+<ul class="report-list">
+
+<li onclick="loadReport('secrets')">
+Secrets Detection Report
+</li>
+
+<li onclick="loadReport('sast')">
+Static Code Analysis Report
+</li>
+
+<li onclick="loadReport('cve')">
+Dependency Vulnerability Report
+</li>
+
+<li onclick="loadReport('iac')">
+Infrastructure Security Report
+</li>
+
 </ul>
+
+<div class="report-output">
+<pre id="report-content">Select a report to view details...</pre>
+</div>
 
 </section>
 
