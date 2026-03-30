@@ -1,37 +1,69 @@
 name: PipeGuard Security Scan
 
+
+
 on:
+
   push:
+
     branches: [ "main" ]
-  pull_request:
+
+
 
 jobs:
+
   security-scan:
+
     runs-on: ubuntu-latest
 
+
+
     steps:
-      - name: Checkout repository
+
+      # 1. Checkout code
+
+      - name: Checkout Repository
+
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+
+
+      # 2. Install dependencies
+
+      - name: Install Dependencies
+
         run: |
+
           sudo apt update
-          sudo apt install -y jq curl
+
+          sudo apt install -y jq curl wget python3-pip
+
+
 
           # Install Gitleaks
+
           curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz | tar -xz
+
           sudo mv gitleaks /usr/local/bin/
 
+
+
           # Install Semgrep
-          pip install semgrep
+
+          pip3 install semgrep
+
+
 
           # Install Trivy
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor -o /usr/share/keyrings/trivy.gpg
-          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb stable main" | sudo tee /etc/apt/sources.list.d/trivy.list
-          sudo apt update
-          sudo apt install -y trivy
 
-      - name: Run PipeGuard
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor -o /usr/share/keyrings/trivy.gpg
+
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb stable main" | sudo tee /etc/apt/sources.list.d/trivy.list
+
+          sudo apt update
+
+      # 3. Run PipeGuard
+      - name: Run PipeGuard Security Scan
         run: |
           chmod +x engine/pipeguard.sh
           ./engine/pipeguard.sh
