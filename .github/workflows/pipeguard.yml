@@ -1,68 +1,56 @@
 name: PipeGuard Security Scan
 
-
-
 on:
-
   push:
-
     branches: [ "main" ]
-
-
+  pull_request:
 
 jobs:
-
   security-scan:
-
     runs-on: ubuntu-latest
 
-
-
     steps:
-
-      # 1. Checkout code
-
+      # 1️⃣ Checkout repository
       - name: Checkout Repository
-
         uses: actions/checkout@v4
 
-
-
-      # 2. Install dependencies
-
+      # 2️⃣ Install dependencies
       - name: Install Dependencies
-
         run: |
-
           sudo apt update
+          sudo apt install -y jq curl wget python3-pip gnupg
 
-          sudo apt install -y jq curl wget python3-pip
-
-
-
-          # Install Gitleaks
-
-          curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz | tar -xz
-
+          # -----------------------------
+          # Install Gitleaks (STABLE FIX)
+          # -----------------------------
+          curl -fL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.18.0/gitleaks_8.18.0_linux_x64.tar.gz
+          tar -xzf gitleaks.tar.gz
           sudo mv gitleaks /usr/local/bin/
+          rm gitleaks.tar.gz
 
+          # Verify Gitleaks
+          gitleaks version
 
-
+          # -----------------------------
           # Install Semgrep
-
+          # -----------------------------
           pip3 install semgrep
 
+          # Verify Semgrep
+          semgrep --version
 
-
-          # Install Trivy
-
+          # -----------------------------
+          # Install Trivy (RELIABLE WAY)
+          # -----------------------------
           wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor -o /usr/share/keyrings/trivy.gpg
-
           echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb stable main" | sudo tee /etc/apt/sources.list.d/trivy.list
-
           sudo apt update
+          sudo apt install -y trivy
 
-      # 3. Run PipeGuard
+          # Verify Trivy
+          trivy --version
+
+      # 3️⃣ Run PipeGuard
       - name: Run PipeGuard Security Scan
         run: |
           chmod +x engine/pipeguard.sh
